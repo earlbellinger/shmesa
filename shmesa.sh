@@ -8,8 +8,8 @@
 mesa_cp () {
     # Copies a MESA working directory but without
     # copying LOGS, photos, etc. 
-    SOURCE=#1
-    TARGET=#2
+    SOURCE=$1
+    TARGET=$2
     rsync -av --progress $SOURCE/ $TARGET \
           --exclude LOGS \
           --exclude photos \
