@@ -11,10 +11,19 @@
 # hot tip: add `source $MESA_DIR/scripts/shmesa.sh` to your ~/.bashrc 
 
 SHMESA_DEBUG=0 # set to 1 for commentary 
+SHMESA_BACKUP=1 # back up modified files before modification (e.g. to inlist.bak) 
 
 mesa () {
     ### Define main utilities
     mesa_help () {
+         cat << "EOF"
+      _     __  __ _____ ____    _    
+  ___| |__ |  \/  | ____/ ___|  / \   
+ / __| '_ \| |\/| |  _| \___ \ / _ \  
+ \__ \ | | | |  | | |___ ___) / ___ \ 
+ |___/_| |_|_|  |_|_____|____/_/   \_\
+                                      
+EOF
         echo "Usage: mesa [change|cp|grep|work|defaults|help] [arguments]"
         echo
         echo "Subcommands:"
@@ -25,7 +34,7 @@ mesa () {
         echo "  grep      search the MESA source code for a given string"
         echo "  help      display this helpful message"
         echo
-        echo "Run `mesa help full` for more options and information"
+        #echo "Run `mesa help full` for more options and information" (TODO)
     }
     
     mesa_work () {  
@@ -38,38 +47,49 @@ mesa () {
         cp -R "$MESA_DIR/star/work" "$target_dir"
     }
 
-    mesa_change () {
-        # usage: mesa change parameter value inlist
-        # Modifies a parameter in the supplied inlist. 
-        # Uncomments the parameter if it's commented out. 
-        # Creates a backup of the inlist in `inlist.bak` 
+    local ESCAPE="s#[^^]#[&]#g; s#\^#\\^#g" # sed escape string; needed below
+    mesa_change() {
+        # usage: mesa change inlist parameter value [parameter value [parameter value]]
+        # Modifies one or more parameters in the supplied inlist.
+        # Uncomments the parameter if it's commented out.
+        # Creates a backup of the inlist in `inlist.bak`
+
         if [[ -z $1 || -z $2 || -z $3 ]]; then
             echo "Error: Missing arguments."
-            echo "Usage: mesa change parameter value inlist"
-            echo "example: mesa change initial_mass 1.3 inlist_project"
-            echo "example: mesa change log_directory 'LOGS_MS' inlist"
-            echo "example: mesa change do_element_diffusion .true. inlist"
+            echo "Usage: mesa change inlist parameter value [parameter value [parameter value]]"
+            echo 
+            echo "example: mesa change inlist_project initial_mass 1.3"
+            echo "example: mesa change inlist_project log_directory 'LOGS_MS'"
+            echo "example: mesa change inlist_project do_element_diffusion .true."
+            echo " or all at once:"
+            echo "example: mesa change inlist_project initial_mass 1.3 do_element_diffusion .true."
             return 1
         fi
-        # args: ($1) name of parameter 
-        #       ($2) new value 
-        #       ($3) filename of inlist where change should occur 
-        local param=$1 
-        local newval=$2 
-        local filename=$3 
 
-        local escapedParam=$(sed 's#[^^]#[&]#g; s#\^#\\^#g' <<< "$param")
-        local search="^\s*\!*\s*$escapedParam\s*=.+$" 
-        local replace="    $param = $newval" 
-        
-        # Check if the parameter is present in the inlist
-        if ! grep -q "$search" "$filename"; then
-            echo "Error: Parameter '$param' not found in the inlist '$filename'."
-            return 1
-        fi
-        
-        # Update its value 
-        sed -r -i.bak -e "s#$search#$replace#g" $filename 
+        local filename=$1
+        shift
+
+        # Create a backup of the inlist before making any changes
+        backup_copy "$filename" "${filename}.bak"
+
+        while [[ -n $1 && -n $2 ]]; do
+            local param=$1
+            local newval=$2
+            shift 2
+
+            local escapedParam=$(sed '$ESCAPE' <<< "$param")
+            local search="^\s*\!*\s*$escapedParam\s*=.+$"
+            local replace="    $param = $newval"
+
+            # Check if the parameter is present in the inlist
+            if ! grep -q "$search" "$filename"; then
+                echo "Error: Parameter '$param' not found in the inlist '$filename'."
+                return 1
+            fi
+
+            # Update its value
+            sed -r -i -e "s#$search#$replace#g" "$filename"
+        done
     }
 
     mesa_cp () {
@@ -91,17 +111,46 @@ mesa () {
     }
     
     mesa_grep () {
-        # 
+        # usage: mesa grep term [optional: directory or filename]
     }
 
     mesa_zip () {
-        # 
+        # usage: mesa zip [directory] 
+        # zips the inlists, models and scripts of the specified directory for sharing 
     }
 
-    mesa_defaults () {
-        # 
+    mesa_defaults() {
+        # usage: mesa defaults [parameter [parameter]]
+        # Copies profile_columns.list and history_columns.list to the current location.
+        # Also uncomments any specified parameters.
+        # If the files are already in the present directory, just uncomment the specified parameters.
+        # Example: mesa defaults nu_max Delta_nu
+
+        # Copy the files if they don't exist in the current directory
+        [[ ! -f profile_columns.list ]] && cp "$MESA_DIR/star/defaults/profile_columns.list" .
+        [[ ! -f history_columns.list ]] && cp "$MESA_DIR/star/defaults/history_columns.list" .
+
+        # back up 
+        backup_copy profile_columns.list
+        backup_copy history_columns.list
+
+        # Uncomment the specified parameters
+        while [[ -n $1 ]]; do
+            local param=$1
+            shift
+
+            local escapedParam=$(sed '$ESCAPE' <<< "$param")
+            local search="^\s*\!*\s*$escapedParam\s*=\s*.+$"
+            local replace="    $param"
+
+            # Uncomment parameter in profile_columns.list
+            sed -r -i -e "s#^(\s*)\!(\s*)$escapedParam#$replace#g" profile_columns.list
+
+            # Uncomment parameter in history_columns.list
+            sed -r -i -e "s#^(\s*)\!(\s*)$escapedParam#$replace#g" history_columns.list
+        done
     }
-    
+
     # Test the mesa function with different subcommands and arguments
     mesa_test () {
         echo "testing shmesa"
@@ -117,6 +166,7 @@ mesa () {
         
         mkdir mesa_test
 
+        # TODO
 
         mesa cp src dest
         mesa grep "search_pattern" file.txt
@@ -128,6 +178,13 @@ mesa () {
     debug_print () {
         if [[ -n $SHMESA_DEBUG ]]; then
             echo "DEBUG: $@"
+        fi
+    }
+    
+    backup_copy () {
+        if [[ -n $SHMESA_BACKUP && ! -z $1 ]]; then
+            debug_print "BACKING UP: $@"
+            cp "$1" "$1".bak
         fi
     }
 
