@@ -24,7 +24,7 @@ mesa () {
  |___/_| |_|_|  |_|_____|____/_/   \_\
                                       
 EOF
-        echo "Usage: mesa [change|cp|grep|work|defaults|help] [arguments]"
+        echo "Usage: mesa [work|change|defaults|cp|grep|help] [arguments]"
         echo
         echo "Subcommands:"
         echo "  work      copy the work directory to the current location"
@@ -200,13 +200,9 @@ EOF
     shift
 
     case "$subcommand" in
-        cp)
-            debug_print "Calling mesa_cp with arguments: $@"
-            mesa_cp "$@"
-            ;;
-        grep)
-            debug_print "Calling mesa_grep with arguments: $@"
-            mesa_grep "$@"
+        work)
+            debug_print "Calling mesa_work with arguments: $@"
+            mesa_work "$@"
             ;;
         change)
             debug_print "Calling mesa_change with arguments: $@"
@@ -215,6 +211,14 @@ EOF
         defaults)
             debug_print "Calling mesa_defaults with arguments: $@"
             mesa_defaults "$@"
+            ;;
+        cp)
+            debug_print "Calling mesa_cp with arguments: $@"
+            mesa_cp "$@"
+            ;;
+        grep)
+            debug_print "Calling mesa_grep with arguments: $@"
+            mesa_grep "$@"
             ;;
         test)
             debug_print "Calling mesa_test with arguments: $@"
