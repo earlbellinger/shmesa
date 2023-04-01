@@ -6,9 +6,16 @@
 #### bellinger@phys.au.dk
 
 #### Command line utilies for MESA 
-# provides commands such as `mesa cp` and `mesa sed` 
-# for usage, source this file (`source shmesa.sh`) and execute: mesa help 
+# provides commands such as `mesa change` and `mesa grep` 
+# for usage, source this file (`source shmesa.sh`) and call: mesa help 
 # hot tip: add `source $MESA_DIR/scripts/shmesa.sh` to your ~/.bashrc 
+
+if [[ -z $MESA_DIR ]] || [[ ! -d $MESA_DIR ]]; then
+  echo "Error: MESA_DIR is not set or does not point to a valid directory."
+  echo "Please download and install MESA:"
+  echo "https://docs.mesastar.org"
+  exit 1
+fi
 
 SHMESA_DEBUG=0 # set to 1 for commentary 
 SHMESA_BACKUP=1 # back up modified files before modification (e.g. to inlist.bak) 
@@ -57,13 +64,12 @@ EOF
 
         if [[ -z $1 || -z $2 || -z $3 ]]; then
             echo "Error: Missing arguments."
-            echo "Usage: mesa change inlist parameter value [parameter value [parameter value]]"
-            echo 
-            echo "example: mesa change inlist_project initial_mass 1.3"
-            echo "example: mesa change inlist_project log_directory 'LOGS_MS'"
-            echo "example: mesa change inlist_project do_element_diffusion .true."
-            echo " or all at once:"
-            echo "example: mesa change inlist_project initial_mass 1.3 do_element_diffusion .true."
+            echo "   usage: mesa change inlist parameter value [parameter value [parameter value]]"
+            echo " example: mesa change inlist_project initial_mass 1.3"
+            echo " example: mesa change inlist_project log_directory 'LOGS_MS'"
+            echo " example: mesa change inlist_project do_element_diffusion .true."
+            echo "    or all at once:"
+            echo " example: mesa change inlist_project initial_mass 1.3 do_element_diffusion .true."
             return 1
         fi
 
@@ -100,13 +106,18 @@ EOF
         # If the files are already in the present directory, just uncomment the specified parameters.
         # Example: mesa defaults nu_max Delta_nu
 
-        # Copy the files if they don't exist in the current directory
-        [[ ! -f profile_columns.list ]] && cp "$MESA_DIR/star/defaults/profile_columns.list" .
-        [[ ! -f history_columns.list ]] && cp "$MESA_DIR/star/defaults/history_columns.list" .
+        # Copy the files and create backups if they already exist in the current directory
+        if [[ -f profile_columns.list ]]; then
+            backup_copy profile_columns.list
+        else
+            cp "$MESA_DIR/star/defaults/profile_columns.list" .
+        fi
 
-        # back up 
-        backup_copy profile_columns.list
-        backup_copy history_columns.list
+        if [[ -f history_columns.list ]]; then
+            backup_copy history_columns.list
+        else
+            cp "$MESA_DIR/star/defaults/history_columns.list" .
+        fi
 
         # Uncomment the specified parameters
         while [[ -n $1 ]]; do
@@ -154,7 +165,7 @@ EOF
         false # TODO
     }
 
-    # Test the mesa function with different subcommands and arguments
+    # Test this function with different subcommands and arguments
     mesa_test () {
         echo "testing shmesa"
         set -Eeuo pipefail # exit if any commands fail 
@@ -167,13 +178,41 @@ EOF
             SHMESA_DEBUG=1
         fi 
         
-        mkdir mesa_test
+        # mesa work
+        mesa work mesa_test
+        cd mesa_test
+        ./mk
+        
+        # mesa defaults
+        mesa defaults nu_max Delta_nu
+        mesa defaults logM
 
+        # mesa change 
+        mesa change inlist_project pgstar_flag .false.
+        mesa change inlist_project \
+                initial_mass 1.2 \
+                mixing_length_alpha 1.5
+        
+        # mesa change with a grid 
+        #for M in `seq 1.0 0.1 1.3`; do
+        #    for A in `seq 1.6 0.1 1.9`; do
+        #        mesa change inlist_project \
+        #            initial_mass $M \
+        #            mixing_length_alpha $A \
+        #            log_directory "'$M_$alpha'"
+        #        ./star inlist_project 
+        #    done
+        #done 
+
+        # mesa cp
         # TODO
 
-        mesa cp src dest
-        mesa grep "search_pattern" file.txt
-        mesa sed "s/old/new/" file.txt
+        # mesa zip
+        # TODO
+
+        # mesa grep
+        # TODO
+
         SHMESA_DEBUG=$temp_value
         echo "all done!"
     }
