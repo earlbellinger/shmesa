@@ -232,11 +232,9 @@ EOF
             mesa_test "$@"
             ;;
         help)
-            debug_print "Calling mesa_help with arguments: $@"
             mesa_help
             ;;
         -h)
-            debug_print "Calling mesa_help with arguments: $@"
             mesa_help
             ;;
         *)
