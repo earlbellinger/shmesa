@@ -156,13 +156,34 @@ EOF
     
     mesa_grep () {
         # usage: mesa grep term [optional: directory or filename]
-        false # TODO
+        if [[ -z $1 ]]; then
+            echo "Error: Missing search term."
+            echo "Usage: mesa grep term [optional: directory or filename]"
+            return 1
+        fi
+
+        local search_term=$1
+        local search_dir=$MESA_DIR
+
+        if [[ -n $2 ]]; then
+            search_dir=$MESA_DIR/$2
+        fi
+
+        grep -r --color=always "$search_term" "$search_dir"
     }
 
     mesa_zip () {
         # usage: mesa zip [directory] 
-        # zips the inlists, models and scripts of the specified directory for sharing 
-        false # TODO
+        # zips the inlists and models of the specified directory for sharing 
+        local zip_name="mesa.zip"
+        local dir_to_zip='.'
+        if [[ ! -z $1 ]]; then
+            dir_to_zip=$1
+            zip_name="${dir_to_zip}_mesa.zip"
+        fi
+
+        # Create a zip file containing only inlists and models
+        zip -r "$zip_name" "$dir_to_zip" -i '*inlist*' '*.mod'
     }
 
     # Test this function with different subcommands and arguments
