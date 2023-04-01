@@ -11,8 +11,9 @@
 # hot tip: add `source $MESA_DIR/scripts/shmesa.sh` to your ~/.bashrc 
 
 if [[ -z $MESA_DIR ]] || [[ ! -d $MESA_DIR ]]; then
-  echo "Error: MESA_DIR is not set or does not point to a valid directory."
-  echo "Please download and install MESA:"
+  echo "Error: \$MESA_DIR is not set or does not point to a valid directory."
+  echo "       \$MESA_DIR=$MESA_DIR"
+  echo "       Please download and install MESA:"
   echo "https://docs.mesastar.org"
   exit 1
 fi
@@ -21,7 +22,9 @@ SHMESA_DEBUG=0 # set to 1 for commentary
 SHMESA_BACKUP=1 # back up modified files before modification (e.g. to inlist.bak) 
 
 mesa () {
-    ### Define main utilities
+    set -Eeuo pipefail # exit if any commands fail 
+    
+    ### Define main utilities; parse command line tokens at the end 
     mesa_help () {
          cat << "EOF"
       _     __  __ _____ ____    _    
@@ -31,7 +34,7 @@ mesa () {
  |___/_| |_|_|  |_|_____|____/_/   \_\
                                       
 EOF
-        echo "Usage: mesa [work|change|defaults|cp|grep|zip|help] [arguments]"
+        echo "Usage: mesa [work|change|defaults|cp|grep|zip|version|update|help] [arguments]"
         echo
         echo "Subcommands:"
         echo "  work      copy the work directory to the current location"
@@ -40,12 +43,14 @@ EOF
         echo "  cp        copy a MESA directory without copying LOGS, photos, etc."
         echo "  grep      search the MESA source code for a given string"
         echo "  zip       prepare a MESA directory for sharing"
+        #echo "  version   check the version of MESA (and check for updates)//TODO"
+        #echo "  update    update MESA to the latest version //TODO"
         echo "  help      display this helpful message"
+        echo "  -h        flag for getting additional details about any of the above"
         echo
-        #echo "Run `mesa help full` for more options and information" (TODO)
     }
     
-    mesa_work () {  
+    mesa_work () {
         # usage: mesa work [optional: target_name] 
         # Copies star/work to the current directory 
         local target_dir="."
@@ -76,21 +81,28 @@ EOF
         local filename=$1
         shift
 
+        if [[ ! -f "$filename" ]]; then
+            echo "Error: '$filename' does not exist or is not a file."
+            exit 1
+        fi
+
         # Create a backup of the inlist before making any changes
         backup_copy "$filename" "${filename}.bak"
 
+        # iterate through parameter,value pairs in the supplied input 
         while [[ -n $1 && -n $2 ]]; do
             local param=$1
             local newval=$2
             shift 2
 
-            local escapedParam=$(sed '$ESCAPE' <<< "$param")
+            local escapedParam=$(sed "$ESCAPE" <<< "$param")
             local search="^\s*\!*\s*$escapedParam\s*=.+$"
             local replace="    $param = $newval"
 
             # Check if the parameter is present in the inlist
             if ! grep -q "$search" "$filename"; then
                 echo "Error: Parameter '$param' not found in the inlist '$filename'."
+                backup_restore "$filename"
                 return 1
             fi
 
@@ -124,16 +136,25 @@ EOF
             local param=$1
             shift
 
-            local escapedParam=$(sed '$ESCAPE' <<< "$param")
-            local search="^\s*\!*\s*$escapedParam\s*=\s*.+$"
+            local escapedParam=$(sed "$ESCAPE" <<< "$param")
+            local search="^\s*\!*\s*$escapedParam\s*.+$"
             local replace="    $param"
 
             # Uncomment parameter in profile_columns.list
-            sed -r -i -e "s#^(\s*)\!(\s*)$escapedParam#$replace#g" profile_columns.list
+            if grep -q "$search" profile_columns.list; then
+                sed -r -i -e "s#$search#$replace#g" profile_columns.list
+            else
+                echo "Warning: Parameter '$param' not found in profile_columns.list."
+            fi
 
             # Uncomment parameter in history_columns.list
-            sed -r -i -e "s#^(\s*)\!(\s*)$escapedParam#$replace#g" history_columns.list
+            if grep -q "$search" history_columns.list; then
+                sed -r -i -e "s#$search#$replace#g" history_columns.list
+            else
+                echo "Warning: Parameter '$param' not found in history_columns.list."
+            fi
         done
+
     }
 
     mesa_cp () {
@@ -189,7 +210,7 @@ EOF
     # Test this function with different subcommands and arguments
     mesa_test () {
         echo "testing shmesa"
-        set -Eeuo pipefail # exit if any commands fail 
+        echo "TODO"
 
         # store current value of SHMESA_DEBUG and turn on debugging 
         local temp_value=$SHMESA_DEBUG
@@ -250,6 +271,13 @@ EOF
             cp "$1" "$1".bak
         fi
     }
+    
+    backup_restore () {
+        if [[ $SHMESA_BACKUP -ne 0 && ! -z $1 ]]; then
+            debug_print "RESTORING: $@"
+            cp "$1".bak "$1"
+        fi
+    }
 
     #############################
     ### Parse command line tokens
@@ -295,7 +323,8 @@ EOF
             mesa_help
             ;;
         -h)
-            mesa_help
+            #mesa_help
+            echo "Not yet implemented!"
             ;;
         *)
             echo "Invalid subcommand: $subcommand"
