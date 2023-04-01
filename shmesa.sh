@@ -179,13 +179,13 @@ EOF
     }
     
     debug_print () {
-        if [[ -n $SHMESA_DEBUG ]]; then
+        if [[ $SHMESA_DEBUG -ne 0 ]]; then
             echo "DEBUG: $@"
         fi
     }
     
     backup_copy () {
-        if [[ -n $SHMESA_BACKUP && ! -z $1 ]]; then
+        if [[ $SHMESA_BACKUP -ne 0 && ! -z $1 ]]; then
             debug_print "BACKING UP: $@"
             cp "$1" "$1".bak
         fi
