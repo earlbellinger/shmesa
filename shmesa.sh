@@ -24,7 +24,7 @@ mesa () {
  |___/_| |_|_|  |_|_____|____/_/   \_\
                                       
 EOF
-        echo "Usage: mesa [work|change|defaults|cp|grep|help] [arguments]"
+        echo "Usage: mesa [work|change|defaults|cp|grep|zip|help] [arguments]"
         echo
         echo "Subcommands:"
         echo "  work      copy the work directory to the current location"
@@ -32,6 +32,7 @@ EOF
         echo "  defaults  copy the history/profile defaults to the current location"
         echo "  cp        copy a MESA directory without copying LOGS, photos, etc."
         echo "  grep      search the MESA source code for a given string"
+        echo "  zip       prepare a MESA directory for sharing"
         echo "  help      display this helpful message"
         echo
         #echo "Run `mesa help full` for more options and information" (TODO)
@@ -92,33 +93,6 @@ EOF
         done
     }
 
-    mesa_cp () {
-        # Copies a MESA working directory but without copying 
-        # LOGS, photos, or .mesa_temp_cache
-        if [[ -z $1 || -z $2 ]]; then
-            echo "Error: Missing arguments."
-            echo "Usage: mesa cp source_dir target_dir"
-            return 1
-        fi
-        # args: ($1) source directory to be copied from
-        #       ($2) target directory to be copied to
-        local SOURCE=$1
-        local TARGET=$2
-        rsync -av --progress $SOURCE/ $TARGET \
-            --exclude LOGS \
-            --exclude photos \
-            --exclude .mesa_temp_cache
-    }
-    
-    mesa_grep () {
-        # usage: mesa grep term [optional: directory or filename]
-    }
-
-    mesa_zip () {
-        # usage: mesa zip [directory] 
-        # zips the inlists, models and scripts of the specified directory for sharing 
-    }
-
     mesa_defaults() {
         # usage: mesa defaults [parameter [parameter]]
         # Copies profile_columns.list and history_columns.list to the current location.
@@ -149,6 +123,35 @@ EOF
             # Uncomment parameter in history_columns.list
             sed -r -i -e "s#^(\s*)\!(\s*)$escapedParam#$replace#g" history_columns.list
         done
+    }
+
+    mesa_cp () {
+        # Copies a MESA working directory but without copying 
+        # LOGS, photos, or .mesa_temp_cache
+        if [[ -z $1 || -z $2 ]]; then
+            echo "Error: Missing arguments."
+            echo "Usage: mesa cp source_dir target_dir"
+            return 1
+        fi
+        # args: ($1) source directory to be copied from
+        #       ($2) target directory to be copied to
+        local SOURCE=$1
+        local TARGET=$2
+        rsync -av --progress $SOURCE/ $TARGET \
+            --exclude LOGS \
+            --exclude photos \
+            --exclude .mesa_temp_cache
+    }
+    
+    mesa_grep () {
+        # usage: mesa grep term [optional: directory or filename]
+        false # TODO
+    }
+
+    mesa_zip () {
+        # usage: mesa zip [directory] 
+        # zips the inlists, models and scripts of the specified directory for sharing 
+        false # TODO
     }
 
     # Test the mesa function with different subcommands and arguments
@@ -219,6 +222,10 @@ EOF
         grep)
             debug_print "Calling mesa_grep with arguments: $@"
             mesa_grep "$@"
+            ;;
+        zip)
+            debug_print "Calling mesa_zip with arguments: $@"
+            mesa_zip "$@"
             ;;
         test)
             debug_print "Calling mesa_test with arguments: $@"
