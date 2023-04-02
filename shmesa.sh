@@ -142,7 +142,7 @@ EOF
             echo "Also uncomments any specified parameters."
             echo "If the files are already in the present directory, just uncomment the specified parameters."
             echo ""
-            echo "Example: mesa defaults nu_max Delta_nu"
+            echo "Example: mesa defaults nu_max delta_nu"
             return 0
         fi
 
@@ -319,7 +319,7 @@ EOF
         
         # mesa defaults
         run_mesa_test "defaults" \
-            "mesa defaults nu_max Delta_nu && \
+            "mesa defaults nu_max delta_nu && \
              mesa defaults logM"
 
         # mesa cp
