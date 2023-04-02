@@ -314,7 +314,8 @@ EOF
                          pgstar_flag .false. && \
              mesa change inlist_project \
                          initial_mass 1.2 \
-                         mixing_length_alpha 1.5"
+                         Z 0.01 \
+                         Zbase 0.01"
         
         # mesa defaults
         run_mesa_test "defaults" \
