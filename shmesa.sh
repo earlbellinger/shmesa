@@ -15,7 +15,7 @@ export MESA_SHMESA_BACKUP=1 # back up modified files before modification (e.g. t
 
 mesa () {
     ( # start a subshell so that the `set` commands are not persistent)
-    set -Eeuo pipefail # exit if any commands fail 
+    set -Eeo pipefail # exit if any commands fail 
     #if [[ $MESA_SHMESA_DEBUG -eq 1 ]]; then # print each command before it is executed
     #    set -x
     #else
