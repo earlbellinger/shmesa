@@ -291,8 +291,11 @@ EOF
 
     ## Test shmesa with different subcommands and arguments
     mesa_test () {
-        echo "testing shmesa"
-        echo "TODO"
+        echo 
+        echo 
+        echo "TESTING SHMESA"
+        echo
+        echo
 
         # store current value of MESA_SHMESA_DEBUG and turn on debugging 
         local temp_value=$MESA_SHMESA_DEBUG
@@ -303,25 +306,30 @@ EOF
         fi 
         
         # mesa [work|change|defaults|cp|grep|zip|version|update|help]
+        local SHMESA_TEST_DIR="shmesa_test_work"
 
         # mesa work
-        mesa work mesa_test
-        cd mesa_test
-        ./mk
+        run_mesa_test "work" \
+            "mesa work $SHMESA_TEST_DIR &&\ 
+             cd $SHMESA_TEST_DIR &&\ 
+             ./mk"
 
         # mesa change 
-        mesa change inlist_project pgstar_flag .false.
-        mesa change inlist_project \
-                initial_mass 1.2 \
-                mixing_length_alpha 1.5
+        run_mesa_test "change" \
+            "mesa change inlist_project pgstar_flag .false. &&
+             mesa change inlist_project \
+                         initial_mass 1.2 \
+                         mixing_length_alpha 1.5"
         
         # mesa defaults
-        mesa defaults nu_max Delta_nu
-        mesa defaults logM
+        run_mesa_test "defaults" \
+            "mesa defaults nu_max Delta_nu &&\
+             mesa defaults logM"
 
         # mesa cp
-        cd ..
-        mesa cp mesa_test mesa_test2
+        run_mesa_test "cp" \
+            "cd .. &&\
+             mesa cp mesa_test mesa_test2"
 
         # mesa grep
         # TODO
@@ -384,6 +392,17 @@ EOF
             fi
         done
         return 1
+    }
+
+    run_mesa_test() {
+        local submodule_name=$1
+        local test_command=$2
+
+        echo
+        echo ">>> test: mesa $submodule_name"
+        eval "mesa $submodule_name $test_command"
+        echo ">>> success"
+        echo
     }
 
     UNTESTED () {
