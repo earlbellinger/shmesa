@@ -312,21 +312,21 @@ EOF
 
         # mesa work
         run_mesa_test "work" \
-            "mesa work $SHMESA_TEST_DIR &&\ 
-             cd $SHMESA_TEST_DIR &&\ 
-             ./mk"
+            "mesa work $SHMESA_TEST_DIR && \
+            cd $SHMESA_TEST_DIR && \
+            ./mk"
 
         # mesa change 
         run_mesa_test "change" \
             "mesa change inlist_project \
-                         pgstar_flag .false. &&
+                         pgstar_flag .false. && \
              mesa change inlist_project \
                          initial_mass 1.2 \
                          mixing_length_alpha 1.5"
         
         # mesa defaults
         run_mesa_test "defaults" \
-            "mesa defaults nu_max Delta_nu &&\
+            "mesa defaults nu_max Delta_nu && \
              mesa defaults logM"
 
         # mesa cp
