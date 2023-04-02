@@ -18,8 +18,8 @@ if [[ -z $MESA_DIR ]] || [[ ! -d $MESA_DIR ]]; then
   exit 1
 fi
 
-MESA_SHMESA_DEBUG=0 # set to 1 for commentary 
-MESA_SHMESA_BACKUP=1 # back up modified files before modification (e.g. to inlist.bak) 
+export MESA_SHMESA_DEBUG=0 # set to 1 for commentary 
+export MESA_SHMESA_BACKUP=1 # back up modified files before modification (e.g. to inlist.bak) 
 
 mesa () {
     set -Eeuo pipefail # exit if any commands fail 
@@ -249,7 +249,7 @@ EOF
         echo "testing shmesa"
         echo "TODO"
 
-        # store current value of SHMESA_DEBUG and turn on debugging 
+        # store current value of MESA_SHMESA_DEBUG and turn on debugging 
         local temp_value=$MESA_SHMESA_DEBUG
         if [[ -n $1 ]]; then
             MESA_SHMESA_DEBUG=$1
@@ -257,20 +257,37 @@ EOF
             MESA_SHMESA_DEBUG=1
         fi 
         
+        # mesa [work|change|defaults|cp|grep|zip|version|update|help]
+
         # mesa work
         mesa work mesa_test
         cd mesa_test
         ./mk
-        
-        # mesa defaults
-        mesa defaults nu_max Delta_nu
-        mesa defaults logM
 
         # mesa change 
         mesa change inlist_project pgstar_flag .false.
         mesa change inlist_project \
                 initial_mass 1.2 \
                 mixing_length_alpha 1.5
+        
+        # mesa defaults
+        mesa defaults nu_max Delta_nu
+        mesa defaults logM
+
+        # mesa cp
+        # TODO
+
+        # mesa grep
+        # TODO
+
+        # mesa zip
+        # TODO
+
+        # mesa version
+        # TODO
+
+        # mesa update
+        # TODO
         
         # mesa change with a grid 
         #for M in `seq 1.0 0.1 1.3`; do
@@ -282,15 +299,6 @@ EOF
         #        ./star inlist_project 
         #    done
         #done 
-
-        # mesa cp
-        # TODO
-
-        # mesa zip
-        # TODO
-
-        # mesa grep
-        # TODO
 
         MESA_SHMESA_DEBUG=$temp_value
         echo "all done!"
@@ -368,6 +376,7 @@ EOF
             ;;
         *)
             echo "Invalid subcommand: $subcommand"
+            # TODO: "The most similar command is: ..."
             mesa_help
             return 1
         ;;
