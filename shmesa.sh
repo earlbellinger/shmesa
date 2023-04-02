@@ -66,14 +66,6 @@ EOF
             return 0
         fi
 
-        for arg in "$@"; do
-            if [[ $arg == "-h" ]]; then
-                echo "Usage: mesa work [optional: target_name]"
-                echo "Copies star/work to the current directory"
-                return 0
-            fi
-        done
-
         local target_dir="."
         if [[ -n $1 ]]; then # check for nonempty arg
             target_dir=$1
@@ -219,8 +211,6 @@ EOF
             return 0
         fi
 
-        UNTESTED
-
         if [[ -z $1 ]]; then
             echo "Error: Missing search term."
             echo "Usage: mesa grep term [optional: directory or filename]"
@@ -263,11 +253,12 @@ EOF
     }
 
 
-    mesa_blank () {
-        ### TEMPLATE FOR NEW FUNCTIONS 
+    ### DEVELOPMENT USE 
+    mesa_template () {
+        ### TEMPLATE FOR NEW SHMESA FUNCTIONS 
         if mesa_check_h_flag "$@"; then
             echo "Usage: mesa funcname arg [optional arg]"
-            echo "put discription here "
+            echo "put discription here"
             return 0
         fi
 
@@ -277,10 +268,11 @@ EOF
         local example_var=5 
         if [[ ! -z $1 ]]; then # check if it's set 
             example_var=$1
-        #else
+        #else # uncomment if you want this to be a required variable
         #    echo "Error: "
         #    return 1
         fi
+        #shift # and then copy this block to parse the next one, for example 
 
         # afterwards, update:
         # 1. mesa_test 
@@ -356,6 +348,20 @@ EOF
         #        ./star inlist_project 
         #    done
         #done 
+
+mesa work "grid_dir"
+cd grid_dir
+./mk
+mesa defaults Delta_nu nu_max
+for M in `seq 1.0 0.1 1.2`; do # M = 1, 1.1, 1.2
+    for A in `seq 1.6 0.1 1.8`; do # alpha_MLT = 1.6, 1.7, 1.8
+        mesa change inlist_project \
+            initial_mass $M \
+            mixing_length_alpha $A \
+            log_directory "M='$M'_'alpha='$alpha'"
+        ./star inlist_project 
+    done
+done 
 
         MESA_SHMESA_DEBUG=$temp_value
         echo "all done!"
