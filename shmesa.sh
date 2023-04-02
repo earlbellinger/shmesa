@@ -119,11 +119,11 @@ EOF
             shift 2
 
             local escapedParam=$(sed "$ESCAPE" <<< "$param")
-            local search="^\s*!?\s*$escapedParam\s*=.+$"
+            local search="^\s*\!*\s*$escapedParam\s*=.+$"
             local replace="    $param = $newval"
 
             # Check if the parameter is present in the inlist
-            if ! grep -q "$search" "$filename"; then
+            if ! grep -q "$param" "$filename"; then
                 echo "Error: Parameter '$param' not found in the inlist '$filename'."
                 backup_restore "$filename"
                 return 1
@@ -166,11 +166,11 @@ EOF
             shift
 
             local escapedParam=$(sed "$ESCAPE" <<< "$param")
-            local search="^\s*!?\s*$escapedParam\s*.+$"
+            local search="^\s*\!*\s*$escapedParam\s*.+$"
             local replace="    $param"
 
-            if grep -q "$search" profile_columns.list || \
-               grep -q "$search" history_columns.list; then
+            if grep -q "$param" profile_columns.list || \
+               grep -q "$param" history_columns.list; then
                 sed -r -i -e "s#$search#$replace#g" profile_columns.list
                 sed -r -i -e "s#$search#$replace#g" history_columns.list
             else
