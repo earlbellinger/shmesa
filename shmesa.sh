@@ -18,11 +18,16 @@ if [[ -z $MESA_DIR ]] || [[ ! -d $MESA_DIR ]]; then
   exit 1
 fi
 
-SHMESA_DEBUG=0 # set to 1 for commentary 
-SHMESA_BACKUP=1 # back up modified files before modification (e.g. to inlist.bak) 
+MESA_SHMESA_DEBUG=0 # set to 1 for commentary 
+MESA_SHMESA_BACKUP=1 # back up modified files before modification (e.g. to inlist.bak) 
 
 mesa () {
     set -Eeuo pipefail # exit if any commands fail 
+    if [[ $SHMESA_DEBUG -eq 1 ]]; then # print each command before it is executed
+        set -x
+    else
+        set +x
+    fi
     
     ### Define main utilities; parse command line tokens at the end 
     mesa_help () {
@@ -50,17 +55,21 @@ EOF
         echo
     }
     
+    ### Now define all the subcommands in the above help message 
+
     mesa_work () {
         # usage: mesa work [optional: target_name] 
         # Copies star/work to the current directory 
+
         local target_dir="."
-        if [[ -n $1 ]]; then
+        if [[ -n $1 ]]; then # check for nonempty arg
             target_dir=$1
         fi
         cp -R "$MESA_DIR/star/work" "$target_dir"
     }
 
-    local ESCAPE="s#[^^]#[&]#g; s#\^#\\^#g" # sed escape string; needed below
+
+    local ESCAPE="s#[^^]#[&]#g; s#\^#\\^#g" # sed escape string; used in functions below
     mesa_change() {
         # usage: mesa change inlist parameter value [parameter value [parameter value]]
         # Modifies one or more parameters in the supplied inlist.
@@ -111,6 +120,7 @@ EOF
         done
     }
 
+
     mesa_defaults() {
         # usage: mesa defaults [parameter [parameter]]
         # Copies profile_columns.list and history_columns.list to the current location.
@@ -118,7 +128,7 @@ EOF
         # If the files are already in the present directory, just uncomment the specified parameters.
         # Example: mesa defaults nu_max Delta_nu
 
-        # Copy the files and create backups if they already exist in the current directory
+        # Copy the files; create backups if they already exist in the current directory
         if [[ -f profile_columns.list ]]; then
             backup_copy profile_columns.list
         else
@@ -140,31 +150,28 @@ EOF
             local search="^\s*\!*\s*$escapedParam\s*.+$"
             local replace="    $param"
 
-            # Uncomment parameter in profile_columns.list
-            if grep -q "$search" profile_columns.list; then
+            if grep -q "$search" profile_columns.list || \
+               grep -q "$search" history_columns.list; then
                 sed -r -i -e "s#$search#$replace#g" profile_columns.list
-            else
-                echo "Warning: Parameter '$param' not found in profile_columns.list."
-            fi
-
-            # Uncomment parameter in history_columns.list
-            if grep -q "$search" history_columns.list; then
                 sed -r -i -e "s#$search#$replace#g" history_columns.list
             else
-                echo "Warning: Parameter '$param' not found in history_columns.list."
+                echo "Warning: Parameter '$param' not found in either profile_columns.list or history_columns.list."
             fi
         done
 
     }
 
+
     mesa_cp () {
         # Copies a MESA working directory but without copying 
         # LOGS, photos, or .mesa_temp_cache
+
         if [[ -z $1 || -z $2 ]]; then
             echo "Error: Missing arguments."
             echo "Usage: mesa cp source_dir target_dir"
             return 1
         fi
+
         # args: ($1) source directory to be copied from
         #       ($2) target directory to be copied to
         local SOURCE=$1
@@ -175,8 +182,10 @@ EOF
             --exclude .mesa_temp_cache
     }
     
+
     mesa_grep () {
         # usage: mesa grep term [optional: directory or filename]
+
         if [[ -z $1 ]]; then
             echo "Error: Missing search term."
             echo "Usage: mesa grep term [optional: directory or filename]"
@@ -193,31 +202,59 @@ EOF
         grep -r --color=always "$search_term" "$search_dir"
     }
 
+
     mesa_zip () {
         # usage: mesa zip [directory] 
         # zips the inlists and models of the specified directory for sharing 
-        local zip_name="mesa.zip"
+
         local dir_to_zip='.'
+        local zip_name="mesa.zip"
         if [[ ! -z $1 ]]; then
             dir_to_zip=$1
             zip_name="${dir_to_zip}_mesa.zip"
+        fi
+
+        if [[ ! $(find "$dir_to_zip" -type f -iname "*inlist*" -o -iname "*.mod") ]]; then
+            echo "Warning: No files with 'inlist' in their names or files ending in '.mod' found in the directory '$dir_to_zip'."
         fi
 
         # Create a zip file containing only inlists and models
         zip -r "$zip_name" "$dir_to_zip" -i '*inlist*' '*.mod'
     }
 
-    # Test this function with different subcommands and arguments
+
+    mesa_blank () {
+        ### TEMPLATE FOR NEW FUNCTIONS 
+        # usage: mesa funcname arg [optional arg] 
+        # put description here 
+
+        # parse required variables 
+        local example_var=5
+        if [[ ! -z $1 ]]; then # check if we got arguments 
+            example_var=$1
+        #else
+        #    echo "Error: "
+        #    return 1
+        fi
+
+        # afterwards, update:
+        # 1. mesa_test 
+        # 2. mesa_help 
+        # 3. parser at the end of this file 
+    }
+
+
+    ## Test shmesa with different subcommands and arguments
     mesa_test () {
         echo "testing shmesa"
         echo "TODO"
 
         # store current value of SHMESA_DEBUG and turn on debugging 
-        local temp_value=$SHMESA_DEBUG
+        local temp_value=$MESA_SHMESA_DEBUG
         if [[ -n $1 ]]; then
-            SHMESA_DEBUG=$1
+            MESA_SHMESA_DEBUG=$1
         else
-            SHMESA_DEBUG=1
+            MESA_SHMESA_DEBUG=1
         fi 
         
         # mesa work
@@ -255,29 +292,37 @@ EOF
         # mesa grep
         # TODO
 
-        SHMESA_DEBUG=$temp_value
+        MESA_SHMESA_DEBUG=$temp_value
         echo "all done!"
     }
+
+
+    ## Some helper functions used above for debugging and backing up files 
     
     debug_print () {
-        if [[ $SHMESA_DEBUG -ne 0 ]]; then
-            echo "DEBUG: $@"
+        if [[ -n $MESA_SHMESA_DEBUG && $MESA_SHMESA_DEBUG -ne 0 ]]; then
+            echo "SHMESA> DEBUG: $@"
         fi
     }
     
     backup_copy () {
-        if [[ $SHMESA_BACKUP -ne 0 && ! -z $1 ]]; then
-            debug_print "BACKING UP: $@"
+        if [[ $MESA_SHMESA_BACKUP -ne 0 && ! -z $1 ]]; then
+            debug_print "SHMESA> BACKING UP: $@"
             cp "$1" "$1".bak
+        else
+            debug_print "SHMESA> NOT BACKING UP: $@ (\$MESA_SHMESA_BACKUP=$MESA_SHMESA_BACKUP)"
         fi
     }
     
     backup_restore () {
-        if [[ $SHMESA_BACKUP -ne 0 && ! -z $1 ]]; then
-            debug_print "RESTORING: $@"
+        if [[ $MESA_SHMESA_BACKUP -ne 0 && ! -z $1 ]]; then
+            debug_print "SHMESA> RESTORING: $@"
             cp "$1".bak "$1"
+        else
+            debug_print "SHMESA> NOT RESTORING: $@ (\$MESA_SHMESA_BACKUP=$MESA_SHMESA_BACKUP)"
         fi
     }
+
 
     #############################
     ### Parse command line tokens
@@ -290,33 +335,28 @@ EOF
     local subcommand=$1
     shift
 
+    debug_print "Calling $subcommand with arguments: $@"
+
     case "$subcommand" in
         work)
-            debug_print "Calling mesa_work with arguments: $@"
             mesa_work "$@"
             ;;
         change)
-            debug_print "Calling mesa_change with arguments: $@"
             mesa_change "$@"
             ;;
         defaults)
-            debug_print "Calling mesa_defaults with arguments: $@"
             mesa_defaults "$@"
             ;;
         cp)
-            debug_print "Calling mesa_cp with arguments: $@"
             mesa_cp "$@"
             ;;
         grep)
-            debug_print "Calling mesa_grep with arguments: $@"
             mesa_grep "$@"
             ;;
         zip)
-            debug_print "Calling mesa_zip with arguments: $@"
             mesa_zip "$@"
             ;;
         test)
-            debug_print "Calling mesa_test with arguments: $@"
             mesa_test "$@"
             ;;
         help)
