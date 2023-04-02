@@ -10,23 +10,24 @@
 # for usage, source this file (`source shmesa.sh`) and call: mesa help 
 # hot tip: add `source $MESA_DIR/scripts/shmesa.sh` to your ~/.bashrc 
 
-if [[ -z $MESA_DIR ]] || [[ ! -d $MESA_DIR ]]; then
-  echo "Error: \$MESA_DIR is not set or does not point to a valid directory."
-  echo "       \$MESA_DIR=$MESA_DIR"
-  echo "       Please download and install MESA:"
-  echo "https://docs.mesastar.org"
-  exit 1
-fi
-
 export MESA_SHMESA_DEBUG=0 # set to 1 for commentary 
 export MESA_SHMESA_BACKUP=1 # back up modified files before modification (e.g. to inlist.bak) 
 
 mesa () {
+    ( # start a subshell so that the `set` commands are not persistent)
     set -Eeuo pipefail # exit if any commands fail 
     if [[ $MESA_SHMESA_DEBUG -eq 1 ]]; then # print each command before it is executed
         set -x
     else
         set +x
+    fi
+    
+    if [[ -z $MESA_DIR ]] || [[ ! -d $MESA_DIR ]]; then
+        echo "Error: \$MESA_DIR is not set or does not point to a valid directory."
+        echo "       \$MESA_DIR=$MESA_DIR"
+        echo "       Please download and install MESA:"
+        echo "https://docs.mesastar.org"
+        exit 1
     fi
     
     ### Define main utilities; parse command line tokens at the end 
@@ -381,4 +382,5 @@ EOF
             return 1
         ;;
     esac
+    ) # close subshell
 }
