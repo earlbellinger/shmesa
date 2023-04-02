@@ -85,7 +85,7 @@ EOF
             echo "Usage: mesa change inlist parameter value [parameter value [parameter value]]"
             echo "Modifies one or more parameters in the supplied inlist."
             echo "Uncomments the parameter if it's commented out."
-            echo "Creates a backup of the inlist in 'inlist.bak'"
+            echo "Creates a backup of the inlist in the corresponding .bak file."
             echo ""
             echo "Examples:"
             echo "  mesa change inlist_project initial_mass 1.3"
@@ -119,7 +119,7 @@ EOF
             shift 2
 
             local escapedParam=$(sed "$ESCAPE" <<< "$param")
-            local search="^\s*\!*\s*$escapedParam\s*=.+$"
+            local search="^\s*\!*\s*$escapedParam\s*=.+$" 
             local replace="    $param = $newval"
 
             # Check if the parameter is present in the inlist
