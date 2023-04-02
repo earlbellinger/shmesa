@@ -16,11 +16,11 @@ export MESA_SHMESA_BACKUP=1 # back up modified files before modification (e.g. t
 mesa () {
     ( # start a subshell so that the `set` commands are not persistent)
     set -Eeuo pipefail # exit if any commands fail 
-    if [[ $MESA_SHMESA_DEBUG -eq 1 ]]; then # print each command before it is executed
-        set -x
-    else
-        set +x
-    fi
+    #if [[ $MESA_SHMESA_DEBUG -eq 1 ]]; then # print each command before it is executed
+    #    set -x
+    #else
+    #    set +x
+    #fi
 
     if [[ -z $MESA_DIR ]] || [[ ! -d $MESA_DIR ]]; then
         echo "Error: \$MESA_DIR is not set or does not point to a valid directory."
@@ -318,7 +318,8 @@ EOF
 
         # mesa change 
         run_mesa_test "change" \
-            "mesa change inlist_project pgstar_flag .false. &&
+            "mesa change inlist_project \
+                         pgstar_flag .false. &&
              mesa change inlist_project \
                          initial_mass 1.2 \
                          mixing_length_alpha 1.5"
@@ -404,7 +405,7 @@ EOF
         echo
         echo ">>> test: mesa $submodule_name"
         echo
-        eval "mesa $submodule_name $test_command"
+        eval "$test_command"
         echo
         echo ">>> success"
         echo
