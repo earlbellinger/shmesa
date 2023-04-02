@@ -119,7 +119,7 @@ EOF
             shift 2
 
             local escapedParam=$(sed "$ESCAPE" <<< "$param")
-            local search="^\s*\!*\s*$escapedParam\s*=.+$"
+            local search="^\s*!?\s*$escapedParam\s*=.+$"
             local replace="    $param = $newval"
 
             # Check if the parameter is present in the inlist
@@ -166,7 +166,7 @@ EOF
             shift
 
             local escapedParam=$(sed "$ESCAPE" <<< "$param")
-            local search="^\s*\!*\s*$escapedParam\s*.+$"
+            local search="^\s*!?\s*$escapedParam\s*.+$"
             local replace="    $param"
 
             if grep -q "$search" profile_columns.list || \
