@@ -291,9 +291,11 @@ EOF
 
     ## Test shmesa with different subcommands and arguments
     mesa_test () {
+        echo
         echo 
         echo 
-        echo "TESTING SHMESA"
+        echo
+        echo ">> TESTING SHMESA <<"
         echo
         echo
 
@@ -399,9 +401,13 @@ EOF
         local test_command=$2
 
         echo
+        echo
         echo ">>> test: mesa $submodule_name"
+        echo
         eval "mesa $submodule_name $test_command"
+        echo
         echo ">>> success"
+        echo
         echo
     }
 
