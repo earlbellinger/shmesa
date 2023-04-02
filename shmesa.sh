@@ -338,31 +338,6 @@ EOF
 
         # mesa update
         # TODO
-        
-        # mesa change with a grid 
-        #for M in `seq 1.0 0.1 1.3`; do
-        #    for A in `seq 1.6 0.1 1.9`; do
-        #        mesa change inlist_project \
-        #            initial_mass $M \
-        #            mixing_length_alpha $A \
-        #            log_directory "'$M_$alpha'"
-        #        ./star inlist_project 
-        #    done
-        #done 
-
-mesa work "grid_dir"
-cd grid_dir
-./mk
-mesa defaults Delta_nu nu_max
-for M in `seq 1.0 0.1 1.2`; do # M = 1, 1.1, 1.2
-    for A in `seq 1.6 0.1 1.8`; do # alpha_MLT = 1.6, 1.7, 1.8
-        mesa change inlist_project \
-            initial_mass $M \
-            mixing_length_alpha $A \
-            log_directory "M='$M'_'alpha='$alpha'"
-        ./star inlist_project 
-    done
-done 
 
         MESA_SHMESA_DEBUG=$temp_value
         echo "all done!"
