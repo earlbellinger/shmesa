@@ -21,7 +21,7 @@ mesa () {
     else
         set +x
     fi
-    
+
     if [[ -z $MESA_DIR ]] || [[ ! -d $MESA_DIR ]]; then
         echo "Error: \$MESA_DIR is not set or does not point to a valid directory."
         echo "       \$MESA_DIR=$MESA_DIR"
@@ -59,31 +59,52 @@ EOF
     ### Now define all the subcommands in the above help message 
 
     mesa_work () {
-        # usage: mesa work [optional: target_name] 
-        # Copies star/work to the current directory 
+        if mesa_check_h_flag "$@"; then
+            echo "Usage: mesa work [optional: target_name]"
+            echo "Copies the MESA star/work directory to the specified location."
+            echo "If no target_name is provided, it will copy the directory to the current location."
+            return 0
+        fi
+
+        for arg in "$@"; do
+            if [[ $arg == "-h" ]]; then
+                echo "Usage: mesa work [optional: target_name]"
+                echo "Copies star/work to the current directory"
+                return 0
+            fi
+        done
 
         local target_dir="."
         if [[ -n $1 ]]; then # check for nonempty arg
             target_dir=$1
         fi
+
+        if [[ -d $target_dir ]]; then
+            echo "Error: Target directory '$target_dir' already exists."
+            return 1
+        fi
+
         cp -R "$MESA_DIR/star/work" "$target_dir"
     }
 
 
     mesa_change () {
-        # usage: mesa change inlist parameter value [parameter value [parameter value]]
-        # Modifies one or more parameters in the supplied inlist.
-        # Uncomments the parameter if it's commented out.
-        # Creates a backup of the inlist in `inlist.bak`
+        if mesa_check_h_flag "$@"; then
+            echo "Usage: mesa change inlist parameter value [parameter value [parameter value]]"
+            echo "Modifies one or more parameters in the supplied inlist."
+            echo "Uncomments the parameter if it's commented out."
+            echo "Creates a backup of the inlist in 'inlist.bak'"
+            echo ""
+            echo "Examples:"
+            echo "  mesa change inlist_project initial_mass 1.3"
+            echo "  mesa change inlist_project log_directory 'LOGS_MS'"
+            echo "  mesa change inlist_project do_element_diffusion .true."
+            echo "  mesa change inlist_project initial_mass 1.3 do_element_diffusion .true."
+            return 0
+        fi
 
         if [[ -z $1 || -z $2 || -z $3 ]]; then
             echo "Error: Missing arguments."
-            echo "   usage: mesa change inlist parameter value [parameter value [parameter value]]"
-            echo " example: mesa change inlist_project initial_mass 1.3"
-            echo " example: mesa change inlist_project log_directory 'LOGS_MS'"
-            echo " example: mesa change inlist_project do_element_diffusion .true."
-            echo "    or all at once:"
-            echo " example: mesa change inlist_project initial_mass 1.3 do_element_diffusion .true."
             return 1
         fi
 
@@ -123,11 +144,15 @@ EOF
 
 
     mesa_defaults () {
-        # usage: mesa defaults [parameter [parameter]]
-        # Copies profile_columns.list and history_columns.list to the current location.
-        # Also uncomments any specified parameters.
-        # If the files are already in the present directory, just uncomment the specified parameters.
-        # Example: mesa defaults nu_max Delta_nu
+        if mesa_check_h_flag "$@"; then
+            echo "Usage: mesa defaults [parameter [parameter]]"
+            echo "Copies profile_columns.list and history_columns.list to the current location."
+            echo "Also uncomments any specified parameters."
+            echo "If the files are already in the present directory, just uncomment the specified parameters."
+            echo ""
+            echo "Example: mesa defaults nu_max Delta_nu"
+            return 0
+        fi
 
         # Copy the files; create backups if they already exist in the current directory
         if [[ -f profile_columns.list ]]; then
@@ -164,8 +189,12 @@ EOF
 
 
     mesa_cp () {
-        # Copies a MESA working directory but without copying 
-        # LOGS, photos, or .mesa_temp_cache
+        if mesa_check_h_flag "$@"; then
+            echo "Usage: mesa cp source_dir target_dir"
+            echo "Copies a MESA working directory but without copying"
+            echo "LOGS, photos, or .mesa_temp_cache"
+            return 0
+        fi
 
         if [[ -z $1 || -z $2 ]]; then
             echo "Error: Missing arguments."
@@ -185,7 +214,12 @@ EOF
     
 
     mesa_grep () {
-        # usage: mesa grep term [optional: directory or filename]
+        if mesa_check_h_flag "$@"; then
+            echo "Usage: mesa grep term [optional: directory or filename]"
+            return 0
+        fi
+
+        UNTESTED
 
         if [[ -z $1 ]]; then
             echo "Error: Missing search term."
@@ -205,8 +239,13 @@ EOF
 
 
     mesa_zip () {
-        # usage: mesa zip [directory] 
-        # zips the inlists and models of the specified directory for sharing 
+        if mesa_check_h_flag "$@"; then
+            echo "Usage: mesa zip [directory]"
+            echo "zips the inlists and models of the specified directory for sharing"
+            return 0
+        fi
+
+        UNTESTED
 
         local dir_to_zip='.'
         local zip_name="mesa.zip"
@@ -226,12 +265,17 @@ EOF
 
     mesa_blank () {
         ### TEMPLATE FOR NEW FUNCTIONS 
-        # usage: mesa funcname arg [optional arg] 
-        # put description here 
+        if mesa_check_h_flag "$@"; then
+            echo "Usage: mesa funcname arg [optional arg]"
+            echo "put discription here "
+            return 0
+        fi
+
+        UNTESTED # comment this out when done (crashes the program to avoid problems)
 
         # parse required variables 
-        local example_var=5
-        if [[ ! -z $1 ]]; then # check if we got arguments 
+        local example_var=5 
+        if [[ ! -z $1 ]]; then # check if it's set 
             example_var=$1
         #else
         #    echo "Error: "
@@ -276,7 +320,8 @@ EOF
         mesa defaults logM
 
         # mesa cp
-        # TODO
+        cd ..
+        mesa cp mesa_test mesa_test2
 
         # mesa grep
         # TODO
@@ -330,6 +375,20 @@ EOF
         else
             debug_print "SHMESA> NOT RESTORING: $@ (\$MESA_SHMESA_BACKUP=$MESA_SHMESA_BACKUP)"
         fi
+    }
+
+    mesa_check_h_flag () {
+        for arg in "$@"; do
+            if [[ $arg == "-h" ]]; then
+                return 0
+            fi
+        done
+        return 1
+    }
+
+    UNTESTED () {
+        echo "WARNING: UNTESTED"
+        exit 1
     }
 
 
