@@ -325,7 +325,7 @@ EOF
         # mesa cp
         run_mesa_test "cp" \
             "cd .. &&\
-             mesa cp mesa_test mesa_test2"
+             mesa cp '$SHMESA_TEST_DIR' '$SHMESA_TEST_DIR'2"
 
         # mesa grep
         # TODO
