@@ -438,11 +438,11 @@ EOF
         help)
             mesa_help
             ;;
-        -h)
-            #mesa_help
-            echo "Not yet implemented!"
+        "" | *[[:space:]]*)
+            mesa_help
             ;;
         *)
+            
             echo "Invalid subcommand: $subcommand"
             # TODO: "The most similar command is: ..."
             mesa_help
