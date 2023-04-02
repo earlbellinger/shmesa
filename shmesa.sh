@@ -296,7 +296,7 @@ EOF
 
         # store current value of MESA_SHMESA_DEBUG and turn on debugging 
         local temp_value=$MESA_SHMESA_DEBUG
-        if [[ -n $1 ]]; then
+        if [[ $# -gt 0 ]]; then # decide whether we want debugging 
             MESA_SHMESA_DEBUG=$1
         else
             MESA_SHMESA_DEBUG=1
