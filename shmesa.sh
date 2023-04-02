@@ -389,7 +389,7 @@ EOF
         echo
         eval "$test_command"
         echo
-        echo ">>> success"
+        echo "<<< success"
         echo
         echo
     }
