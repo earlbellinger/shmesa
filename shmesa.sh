@@ -69,8 +69,7 @@ EOF
     }
 
 
-    local ESCAPE="s#[^^]#[&]#g; s#\^#\\^#g" # sed escape string; used in functions below
-    mesa_change() {
+    mesa_change () {
         # usage: mesa change inlist parameter value [parameter value [parameter value]]
         # Modifies one or more parameters in the supplied inlist.
         # Uncomments the parameter if it's commented out.
@@ -98,6 +97,7 @@ EOF
         # Create a backup of the inlist before making any changes
         backup_copy "$filename" "${filename}.bak"
 
+        local ESCAPE="s#[^^]#[&]#g; s#\^#\\^#g" # sed escape string
         # iterate through parameter,value pairs in the supplied input 
         while [[ -n $1 && -n $2 ]]; do
             local param=$1
@@ -121,7 +121,7 @@ EOF
     }
 
 
-    mesa_defaults() {
+    mesa_defaults () {
         # usage: mesa defaults [parameter [parameter]]
         # Copies profile_columns.list and history_columns.list to the current location.
         # Also uncomments any specified parameters.
@@ -141,6 +141,7 @@ EOF
             cp "$MESA_DIR/star/defaults/history_columns.list" .
         fi
 
+        local ESCAPE="s#[^^]#[&]#g; s#\^#\\^#g" # sed escape string
         # Uncomment the specified parameters
         while [[ -n $1 ]]; do
             local param=$1
@@ -158,7 +159,6 @@ EOF
                 echo "Warning: Parameter '$param' not found in either profile_columns.list or history_columns.list."
             fi
         done
-
     }
 
 
