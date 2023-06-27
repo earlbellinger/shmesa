@@ -71,7 +71,7 @@ EOF
             target_dir=$1
         fi
 
-        if [[ -d $target_dir ]]; then
+        if [[ -d $target_dir ]] && [[ $target_dir != "." ]]; then
             echo "Error: Target directory '$target_dir' already exists."
             return 1
         fi
