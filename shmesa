@@ -363,7 +363,7 @@ shmesa_test () {
 
     # shmesa extras
     run_shmesa_test "extras" \
-        "(shmesa extras)"
+        "(cd $MESA_SHMESA_TEST && shmesa extras)"
     
     # shmesa zip
     run_shmesa_test "zip" \
