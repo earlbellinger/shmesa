@@ -263,7 +263,7 @@ shmesa_template () {
     ### TEMPLATE FOR NEW SHMESA FUNCTIONS 
     if shmesa_check_h_flag "$@"; then
         echo "Usage: shmesa funcname arg [optional arg]"
-        echo "put discription here"
+        echo "put description here"
         return 0
     fi
 
